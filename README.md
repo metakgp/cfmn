@@ -209,8 +209,8 @@ VITE_GOOGLE_CLIENT_ID=your_google_client_id_here
 ```
 
 **Root Environment Files:**
-- `root/.env` (for development)
-- `root/.production.env` (for production)
+- `project_root/.env` (for development)
+- `project_root/.production.env` (for production)
 
 ```env
 GOOGLE_CLIENT_ID=your_google_client_id_here
@@ -224,7 +224,7 @@ Make sure all four files contain the correct Google Client ID:
 
 ### Database Setup
 
-This project uses a PostgreSQL database. The database schema and initial data are defined in `root/database/init.sql`.
+This project uses a PostgreSQL database. The database schema and initial data are defined in `project_root/database/init.sql`.
 
 #### Development Environment
 
@@ -257,7 +257,7 @@ For development, the database is automatically set up using Docker Compose:
    ```
 
 3. **Database initialization includes:**
-- Creating tables and schemas defined in `root/database/init.sql`
+- Creating tables and schemas defined in `project_root/database/init.sql`
 - Setting up initial data
 - Configuring database constraints and indexes
 - All queries in `init.sql` are executed automatically on first startup
@@ -268,9 +268,9 @@ For production deployment, you need to manually set up the database:
 
 1. **Create a PostgreSQL database** (probably [Database of Babel](https://github.com/metakgp/dob))
 
-2. **Execute the initialization queries from `root/database/init.sql`:**
+2. **Execute the initialization queries from `project_root/database/init.sql`:**
    ```bash
-   psql -h your_host -U your_user -d your_database -f root/database/init.sql
+   psql -h your_host -U your_user -d your_database -f project_root/database/init.sql
    ```
 
 3. **Configure your production environment variables** with the database connection details:
@@ -286,7 +286,7 @@ For production deployment, you need to manually set up the database:
 
 #### Database Schema
 
-The `root/database/init.sql` file contains:
+The `project_root/database/init.sql` file contains:
 - Table definitions for users, notes and votes
 - Foreign key constraints and relationships
 
