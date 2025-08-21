@@ -1,0 +1,25 @@
+# Git and Docker config
+.git
+.gitignore
+.dockerignore
+Dockerfile
+
+# Node.js dependencies
+# These should be installed inside the container, not copied from your host
+node_modules
+frontend/node_modules
+
+# Build artifacts
+# These are generated inside the container
+dist
+build
+frontend/dist
+backend/target
+
+# IDE and OS files
+.vscode
+.idea
+*.DS_Store
+
+# Log files
+npm-debug.log

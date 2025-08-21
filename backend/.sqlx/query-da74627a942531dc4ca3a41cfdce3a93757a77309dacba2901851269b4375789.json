@@ -1,0 +1,137 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            n.id as \"note_id!\",\n            n.course_name as \"note_course_name!\",\n            n.course_code as \"note_course_code!\",\n            n.description as \"note_description\",\n            n.professor_names as \"note_professor_names\",\n            n.tags as \"note_tags!\",\n            n.is_public as \"note_is_public!\",\n            n.has_preview_image as \"note_has_preview_image!\",\n            n.uploader_user_id as \"note_uploader_user_id!\",\n            n.created_at as \"note_created_at!\",\n            n.downloads as \"note_downloads!\",\n            COALESCE(upvote_counts.count, 0) as \"note_upvote_count!\",\n            COALESCE(downvote_counts.count, 0) as \"note_downvote_count!\",\n            user_vote.is_upvote as \"note_user_upvote?\",\n            u.id as \"user_id!\",\n            u.google_id as \"user_google_id!\",\n            u.email as \"user_email!\",\n            u.full_name as \"user_full_name!\",\n            u.reputation as \"user_reputation!\",\n            u.created_at as \"user_created_at!\"\n        FROM\n            notes n\n        JOIN\n            users u ON n.uploader_user_id = u.id\n        LEFT JOIN\n            (SELECT note_id, COUNT(*) as count\n             FROM votes\n             WHERE is_upvote = true\n             GROUP BY note_id) upvote_counts ON n.id = upvote_counts.note_id\n        LEFT JOIN\n            (SELECT note_id, COUNT(*) as count\n             FROM votes\n             WHERE is_upvote = false\n             GROUP BY note_id) downvote_counts ON n.id = downvote_counts.note_id\n        LEFT JOIN\n            votes user_vote ON n.id = user_vote.note_id AND user_vote.user_id = $2\n        WHERE course_name ILIKE $1 OR course_code ILIKE $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "note_id!",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "note_course_name!",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "note_course_code!",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "note_description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "note_professor_names",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 5,
+        "name": "note_tags!",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 6,
+        "name": "note_is_public!",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 7,
+        "name": "note_has_preview_image!",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 8,
+        "name": "note_uploader_user_id!",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 9,
+        "name": "note_created_at!",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 10,
+        "name": "note_downloads!",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 11,
+        "name": "note_upvote_count!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 12,
+        "name": "note_downvote_count!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 13,
+        "name": "note_user_upvote?",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 14,
+        "name": "user_id!",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 15,
+        "name": "user_google_id!",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 16,
+        "name": "user_email!",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 17,
+        "name": "user_full_name!",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 18,
+        "name": "user_reputation!",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 19,
+        "name": "user_created_at!",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      null,
+      null,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "da74627a942531dc4ca3a41cfdce3a93757a77309dacba2901851269b4375789"
+}

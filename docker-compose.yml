@@ -1,0 +1,43 @@
+services:
+  backend:
+    build: .
+    container_name: cfmn-backend
+    restart: always
+    env_file:
+      - .production.env
+    networks:
+      metaploy-network:
+        aliases:
+          - cfmn-backend
+      metaploy-private-network:
+    volumes:
+      - ./logs:/app/log
+      - nginx-config-volume:/etc/nginx/sites-enabled
+      - nginx-https-config-volume:/etc/nginx/https-enabled
+      - odins-vault:/app/static_files
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+networks:
+  metaploy-network:
+    external: true
+    name: metaploy-network
+  metaploy-private-network:
+    external: true
+    name: metaploy-private-network
+
+volumes:
+  postgres-data:
+    name: postgres-data
+  nginx-config-volume:
+    external: true
+    name: metaploy-nginx-config-volume
+  odins-vault:
+    external: true
+    name: odins-vault
+  nginx-https-config-volume:
+    external: true
+    name: metaploy-nginx-https-config-volume

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM votes WHERE user_id = $1 AND note_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "2640b8454bcc1c98012890f62e9ea6f8ab4b0f9a64d4d0e0148bd67cb1a64f43"
+}
