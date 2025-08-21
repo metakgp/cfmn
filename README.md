@@ -40,12 +40,13 @@
 
 - [About The Project](#about-the-project)
 - [Getting Started](#getting-started)
-    - [Prerequisites](#prerequisites)
-    - [Installation](#installation)
+  - [Prerequisites](#prerequisites)
+  - [Google OAuth Setup](#google-oauth-setup)
+  - [Installation](#installation)
 - [Usage](#usage)
 - [Contact](#contact)
-    - [Maintainer(s)](#maintainers)
-    - [creators(s)](#creators)
+  - [Maintainer(s)](#maintainers)
+  - [creators(s)](#creators)
 - [Additional documentation](#additional-documentation)
 
 </details>
@@ -63,6 +64,51 @@
 ### Prerequisites
 [WIP]
 
+### Google OAuth Setup
+
+This project requires Google OAuth for authentication. You need to set up a Google OAuth client and configure the client ID in multiple environment files.
+
+#### Step 1: Create Google OAuth Credentials
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Navigate to **APIs & Services** > **Credentials**
+4. Click **Create Credentials** > **OAuth client ID**
+5. If prompted, configure the OAuth consent screen first:
+  - Choose **External** user type
+  - Fill in the required fields (App name, User support email, Developer contact email)
+  - Add your domain to **Authorized domains** if deploying to production
+6. For **Application type**, select **Web application**
+7. Add your Authorized Javascript origins:
+  - For development: `http://localhost:5173` and `http://localhost`
+  - For production: `https://cfmn.metakgp.org` (frontend URL)
+8. Click **Create** and copy the **Client ID**
+
+#### Step 2: Configure Environment Variables
+
+You need to set the Google Client ID in the following environment files:
+
+**Frontend Environment Files:**
+- `frontend/.env.local` (for development)
+- `frontend/.env.production` (for production builds)
+
+```env
+VITE_GOOGLE_CLIENT_ID=your_google_client_id_here
+```
+
+**Root Environment Files:**
+- `root/.env` (for development)
+- `root/.production.env` (for production)
+
+```env
+GOOGLE_CLIENT_ID=your_google_client_id_here
+```
+
+#### Step 3: Verify Configuration
+
+Make sure all four files contain the correct Google Client ID:
+- Frontend uses `VITE_GOOGLE_CLIENT_ID` (Vite environment variable)
+- Backend/root uses `GOOGLE_CLIENT_ID` (standard environment variable)
 
 ### Installation
 
