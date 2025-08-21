@@ -82,7 +82,7 @@ This project requires Google OAuth for authentication. You need to set up a Goog
 7. Add your Authorized Javascript origins:
   - For development: `http://localhost:5173` and `http://localhost`
   - For production: `https://cfmn.metakgp.org` (frontend URL)
-8. Click **Create** and copy the **Client ID**
+8. Click **Create** and copy the **Client ID**. Client Secret is not needed for this project.
 
 #### Step 2: Configure Environment Variables
 
