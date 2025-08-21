@@ -1,6 +1,6 @@
 services:
   backend:
-    build: .
+    image: exempl4r/cfmn-backend:latest
     container_name: cfmn-backend
     restart: always
     env_file:
@@ -13,7 +13,6 @@ services:
     volumes:
       - ./logs:/app/log
       - nginx-config-volume:/etc/nginx/sites-enabled
-      - nginx-https-config-volume:/etc/nginx/https-enabled
       - odins-vault:/app/static_files
     logging:
       driver: "json-file"
@@ -38,6 +37,3 @@ volumes:
   odins-vault:
     external: true
     name: odins-vault
-  nginx-https-config-volume:
-    external: true
-    name: metaploy-nginx-https-config-volume
