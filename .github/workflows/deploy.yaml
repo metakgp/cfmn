@@ -115,3 +115,4 @@ jobs:
                       cd "${PROJECT_DIR}"
                       sudo docker-compose down
                       sudo docker-compose --profile prod up -d
+

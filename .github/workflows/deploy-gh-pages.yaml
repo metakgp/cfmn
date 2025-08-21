@@ -12,7 +12,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # This is the key line
+      contents: write
 
     steps:
       - name: Checkout code
