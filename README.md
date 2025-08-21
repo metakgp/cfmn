@@ -42,6 +42,7 @@
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Google OAuth Setup](#google-oauth-setup)
+  - [Database Setup](#database-setup)
   - [Installation](#installation)
 - [Usage](#usage)
 - [Contact](#contact)
@@ -75,13 +76,13 @@ This project requires Google OAuth for authentication. You need to set up a Goog
 3. Navigate to **APIs & Services** > **Credentials**
 4. Click **Create Credentials** > **OAuth client ID**
 5. If prompted, configure the OAuth consent screen first:
-  - Choose **External** user type
-  - Fill in the required fields (App name, User support email, Developer contact email)
-  - Add your domain to **Authorized domains** if deploying to production
+- Choose **External** user type
+- Fill in the required fields (App name, User support email, Developer contact email)
+- Add your domain to **Authorized domains** if deploying to production
 6. For **Application type**, select **Web application**
 7. Add your Authorized Javascript origins:
-  - For development: `http://localhost:5173` and `http://localhost`
-  - For production: `https://cfmn.metakgp.org` (frontend URL)
+- For development: `http://localhost:5173` and `http://localhost`
+- For production: `https://cfmn.metakgp.org` (frontend URL)
 8. Click **Create** and copy the **Client ID**. Client Secret is not needed for this project.
 
 #### Step 2: Configure Environment Variables
@@ -109,6 +110,76 @@ GOOGLE_CLIENT_ID=your_google_client_id_here
 Make sure all four files contain the correct Google Client ID:
 - Frontend uses `VITE_GOOGLE_CLIENT_ID` (Vite environment variable)
 - Backend/root uses `GOOGLE_CLIENT_ID` (standard environment variable)
+
+### Database Setup
+
+This project uses a PostgreSQL database. The database schema and initial data are defined in `root/database/init.sql`.
+
+#### Development Environment
+
+For development, the database is automatically set up using Docker Compose:
+
+1. **Configure database parameters in `docker-compose.dev.yml`:**
+   ```yaml
+   services:
+     postgres:
+       image: postgres:16-alpine
+       container_name: cfmn-dev-db
+       environment:
+         POSTGRES_DB: cfmn_dev
+         POSTGRES_USER: cfmn_user
+         POSTGRES_PASSWORD: cfmn_password
+       volumes:
+         - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+         - postgres-data-dev:/var/lib/postgresql/data
+       ports:
+         - "5432:5432"
+   
+   volumes:
+     postgres-data-dev:
+       name: postgres-data-dev
+   ```
+
+2. **The database will be automatically initialized when you run:**
+   ```bash
+   docker-compose -f docker-compose.dev.yml up
+   ```
+
+3. **Database initialization includes:**
+  - Creating tables and schemas defined in `root/database/init.sql`
+  - Setting up initial data
+  - Configuring database constraints and indexes
+  - All queries in `init.sql` are executed automatically on first startup
+
+#### Production Environment
+
+For production deployment, you need to manually set up the database:
+
+1. **Create a PostgreSQL database** (probably [Database of Babel](https://github.com/metakgp/dob))
+
+2. **Execute the initialization queries from `root/database/init.sql`:**
+   ```bash
+   psql -h your_host -U your_user -d your_database -f root/database/init.sql
+   ```
+
+3. **Configure your production environment variables** with the database connection details:
+   ```env
+   DATABASE_URL=postgresql://username:password@host:port/database
+   # or individual parameters
+   DB_HOST=your_database_host
+   DB_PORT=5432
+   DB_NAME=your_database_name
+   DB_USER=your_database_user
+   DB_PASSWORD=your_database_password
+   ```
+
+#### Database Schema
+
+The `root/database/init.sql` file contains:
+- Table definitions for users, notes and votes
+- Foreign key constraints and relationships
+
+Make sure to review and customize the database configuration based on your specific requirements.
 
 ### Installation
 

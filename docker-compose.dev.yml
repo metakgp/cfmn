@@ -10,15 +10,13 @@ services:
       # This volume persists the database data
       - postgres-data-dev:/var/lib/postgresql/data
       # This script will run on initialization from the /database directory
-      - ../cfmn/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     restart: always
-    networks:
-      - metaploy-private-network
+    ports:
+      - "5432:5432"
 
-networks:
-  metaploy-private-network:
-    external: true
-    name: metaploy-private-network
+
+
 volumes:
   postgres-data-dev:
     name: postgres-data-dev
