@@ -40,14 +40,15 @@
 
 - [About The Project](#about-the-project)
 - [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Google OAuth Setup](#google-oauth-setup)
-  - [Database Setup](#database-setup)
-  - [Installation](#installation)
+    - [Prerequisites](#prerequisites)
+    - [Environment Setup](#environment-setup)
+    - [Google OAuth Setup](#google-oauth-setup)
+    - [Database Setup](#database-setup)
+    - [Installation](#installation)
 - [Usage](#usage)
 - [Contact](#contact)
-  - [Maintainer(s)](#maintainers)
-  - [creators(s)](#creators)
+    - [Maintainer(s)](#maintainers)
+    - [creators(s)](#creators)
 - [Additional documentation](#additional-documentation)
 
 </details>
@@ -64,6 +65,116 @@
 
 ### Prerequisites
 [WIP]
+
+### Environment Setup
+
+This project requires proper environment configuration for both development and production environments. Environment files contain sensitive configuration like API keys, database credentials, and other settings.
+
+#### Setting up Development Environment (.env)
+
+1. **Copy the template file:**
+   ```bash
+   cp .env.template .env
+   ```
+
+2. **Configure the environment variables in `.env`:**
+   ```env
+   # Google OAuth - Get this from Google Cloud Console (see Google OAuth Setup section)
+   GOOGLE_CLIENT_ID=your_actual_client_id.apps.googleusercontent.com
+   
+   # JWT Configuration - Generate a secure random string
+   SIGNING_SECRET=your-secure-signing-secret-here
+   EXPIRATION_TIME_SECONDS="86400"  # 24 hours
+   
+   # File Upload Configuration
+   FILE_SIZE_LIMIT="50"  # MB
+   
+   # Server Configuration
+   PORT=8085
+   
+   # Database Configuration (for local development)
+   DB_NAME=cfmn_dev
+   DB_HOST=localhost  # Should be localhost for development
+   DB_PORT=5432
+   DB_USER=cfmn_user
+   DB_PASSWORD=cfmn_password
+   
+   # File Storage Paths (create these directories locally)
+   UPLOADED_NOTES_PATH=cfmn/notes/uploaded
+   PREVIEWS_PATH=cfmn/previews/uploaded
+   LOG_LOCATION=/path/to/your/log/directory
+   
+   # Static Files Configuration
+   STATIC_FILES_URL=http://localhost:8085
+   STATIC_FILE_STORAGE_LOCATION=/path/to/your/static/files
+   ```
+
+#### Setting up Production Environment (.production.env)
+
+1. **Copy the template file:**
+   ```bash
+   cp .production.env.template .production.env
+   ```
+
+2. **Configure the environment variables in `.production.env`:**
+   ```env
+   # Google OAuth - Same as development but for production domain
+   GOOGLE_CLIENT_ID=your_production_client_id.apps.googleusercontent.com
+   
+   # JWT Configuration - Use a different, secure signing secret for production
+   SIGNING_SECRET=your-production-signing-secret-here
+   EXPIRATION_TIME_SECONDS="86400"
+   
+   # File Upload Configuration
+   FILE_SIZE_LIMIT="50"
+   
+   # Server Configuration
+   PORT=8085
+   VITE_API_BASE_URL=https://your-production-api-url.com
+   FRONTEND_BUILD_DIR=../frontend/dist/
+   
+   # Database Configuration (for production)
+   DB_NAME=cfmn_production
+   DB_HOST=postgres  # Docker service name or production database host
+   DB_PORT=5432
+   DB_USER=your_production_db_user
+   DB_PASSWORD=your_production_db_password
+   
+   # File Storage Paths (production paths)
+   UPLOADED_NOTES_PATH=cfmn/notes/uploaded
+   PREVIEWS_PATH=cfmn/previews/uploaded
+   
+   # Static Files Configuration (production)
+   STATIC_FILES_URL=http://static.metakgp.org
+   
+   # Docker Container Paths
+   LOG_LOCATION=/app/log
+   STATIC_FILE_STORAGE_LOCATION=/app/static_files
+   ```
+
+#### Frontend Environment Setup
+
+The frontend also requires environment configuration:
+
+**For Development (`frontend/.env.local`):**
+```env
+VITE_GOOGLE_CLIENT_ID=your_actual_client_id.apps.googleusercontent.com
+VITE_API_BASE_URL=http://localhost:8085
+```
+
+**For Production (`frontend/.env.production`):**
+```env
+VITE_GOOGLE_CLIENT_ID=your_production_client_id.apps.googleusercontent.com
+VITE_API_BASE_URL=https://your-production-api-url.com
+```
+
+#### Important Notes
+
+- **Never commit actual environment files** (`.env`, `.production.env`) to version control
+- **Generate secure, random signing secrets** for production environments
+- **Use different Google OAuth Client IDs** for development and production
+- **Ensure database credentials match** your actual database configuration
+- **Create required directories** specified in file paths before running the application
 
 ### Google OAuth Setup
 
@@ -146,10 +257,10 @@ For development, the database is automatically set up using Docker Compose:
    ```
 
 3. **Database initialization includes:**
-  - Creating tables and schemas defined in `root/database/init.sql`
-  - Setting up initial data
-  - Configuring database constraints and indexes
-  - All queries in `init.sql` are executed automatically on first startup
+- Creating tables and schemas defined in `root/database/init.sql`
+- Setting up initial data
+- Configuring database constraints and indexes
+- All queries in `init.sql` are executed automatically on first startup
 
 #### Production Environment
 
