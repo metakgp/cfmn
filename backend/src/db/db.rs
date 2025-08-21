@@ -16,6 +16,7 @@ impl DBPoolWrapper {
             env_vars.db_port,
             env_vars.db_name
         );
+        println!("{}", db_url);
         let connection_pool = PgPoolOptions::new()
             .max_connections(5)
             .connect(&db_url)
