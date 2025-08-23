@@ -93,7 +93,7 @@ jobs:
                   script_stop: true
                   script: |
                       cd "${PROJECT_DIR}"
-                      sudo docker-compose pull
+                      sudo docker compose pull
 
     deploy:
         name: Deploy Stage
@@ -113,6 +113,6 @@ jobs:
                   envs: PROJECT_DIR
                   script: |
                       cd "${PROJECT_DIR}"
-                      sudo docker-compose down
-                      sudo docker-compose --profile prod up -d
+                      sudo docker compose down
+                      sudo docker compose --profile prod up -d
 
