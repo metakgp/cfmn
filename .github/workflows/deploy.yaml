@@ -62,7 +62,7 @@ jobs:
             - name: Sync local repo with remote repo
               uses: appleboy/ssh-action@master
               env:
-                  PROJECT_DIR: ${{ secrets.PROJECT_DIR }}
+                  PROJECT_DIR: ${{ vars.PROJECT_DIR }}
               with:
                   host: ${{ secrets.SSH_HOSTNAME }}
                   username: ${{ secrets.SSH_USERNAME }}
@@ -83,7 +83,7 @@ jobs:
             - name: Pull the latest images(s)
               uses: appleboy/ssh-action@master
               env:
-                  PROJECT_DIR: ${{ secrets.PROJECT_DIR }}
+                  PROJECT_DIR: ${{ vars.PROJECT_DIR }}
               with:
                   host: ${{ secrets.SSH_HOSTNAME }}
                   username: ${{ secrets.SSH_USERNAME }}
@@ -104,7 +104,7 @@ jobs:
             - name: Deploy the latest build(s)
               uses: appleboy/ssh-action@master
               env:
-                  PROJECT_DIR: ${{ secrets.PROJECT_DIR }}
+                  PROJECT_DIR: ${{ vars.PROJECT_DIR }}
               with:
                   host: ${{ secrets.SSH_HOSTNAME }}
                   username: ${{ secrets.SSH_USERNAME }}
