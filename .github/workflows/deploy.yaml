@@ -7,6 +7,8 @@ on:
         paths:
             - "backend/**"
             - ".github/workflows/deploy.yaml"
+            - "docker-compose.yml"
+            - "Dockerfile"
 
 jobs:
     dockerhub:
