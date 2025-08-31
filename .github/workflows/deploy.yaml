@@ -9,6 +9,7 @@ on:
             - ".github/workflows/deploy.yaml"
             - "docker-compose.yml"
             - "Dockerfile"
+            - "metaploy/**"
 
 jobs:
     dockerhub:
