@@ -1,6 +1,6 @@
 services:
   backend:
-    image: exempl4r/cfmn-backend:latest
+    image: metakgporg/cfmn-backend
     container_name: cfmn-backend
     restart: always
     env_file:
