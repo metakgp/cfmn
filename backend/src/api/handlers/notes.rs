@@ -167,6 +167,7 @@ async fn generate_preview_image(
 }
 
 // Integration into your upload_note function
+// TODO: Add semester and year fields
 pub async fn upload_note(
     State(state): State<RouterState>,
     Extension(user): Extension<User>,

@@ -1,10 +1,11 @@
 // components/Header.tsx
 import React, { useState, useRef, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useSignInFlow } from '../hooks/useSignInFlow';
 import SignInModal from './SignInModal';
 import UploadModal from './UploadModal';
-import { LogOut, Upload, Plus, ChevronDown, User } from 'lucide-react';
+import { LogOut, Upload, Plus, ChevronDown, User, Trophy } from 'lucide-react';
 import type { ResponseNote } from '../types';
 
 interface HeaderProps {
@@ -13,6 +14,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onNoteUploaded }) => {
     const { user, isAuthenticated, isLoading, signOut } = useAuth();
+    const location = useLocation();
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
     const userMenuRef = useRef<HTMLDivElement>(null);
@@ -85,15 +87,35 @@ const Header: React.FC<HeaderProps> = ({ onNoteUploaded }) => {
     // Get user's profile picture (if available from Google)
     const profilePicture = user?.picture;
 
+    // Check if current page is leaderboard
+    const isLeaderboardPage = location.pathname === '/leaderboard';
+
     return (
         <>
             <header className="bg-white dark:bg-gray-900 shadow-md sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700">
                 <div className="container mx-auto px-4 py-4 flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                        <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">CFMN</h1>
+                        <Link to="/">
+                            <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400 cursor-pointer hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
+                                CFMN
+                            </h1>
+                        </Link>
                     </div>
 
                     <div className="flex items-center space-x-4">
+                        {/* Leaderboard Button */}
+                        <Link
+                            to="/leaderboard"
+                            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors font-medium ${
+                                isLeaderboardPage
+                                    ? 'bg-blue-600 text-white'
+                                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            }`}
+                        >
+                            <Trophy size={18} />
+                            <span className="hidden sm:inline">Leaderboard</span>
+                        </Link>
+
                         {isLoading ? (
                             <div className="animate-pulse flex items-center space-x-4">
                                 <div className="h-8 w-20 bg-gray-300 dark:bg-gray-600 rounded"></div>

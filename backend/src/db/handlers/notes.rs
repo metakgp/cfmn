@@ -23,6 +23,7 @@ pub async fn update_note_preview_status(
     Ok(())
 }
 
+// TODO: Handle Year and Semester fields in the future, Add migrations removing reputation
 pub async fn create_note(
     db_wrapper: &DBPoolWrapper,
     new_note: CreateNote,
