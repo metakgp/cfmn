@@ -1,0 +1,64 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        WITH user_stats AS (\n            SELECT\n                u.id,\n                u.full_name,\n                u.picture,\n                COUNT(DISTINCT n.id) as total_notes,\n                COUNT(DISTINCT CASE WHEN v.is_upvote = true THEN v.id END) as total_upvotes,\n                COALESCE(SUM(n.downloads), 0) as total_downloads\n            FROM users u\n            LEFT JOIN notes n ON u.id = n.uploader_user_id\n            LEFT JOIN votes v ON n.id = v.note_id\n            GROUP BY u.id, u.full_name, u.picture\n        ),\n        user_reputation AS (\n            SELECT\n                id,\n                full_name,\n                picture,\n                total_notes,\n                total_upvotes,\n                total_downloads,\n                CASE\n                    WHEN total_notes > 0 THEN\n                        (total_upvotes::FLOAT / total_notes::FLOAT) *\n                        (total_notes + total_upvotes + total_downloads)\n                    ELSE 0\n                END as reputation\n            FROM user_stats\n        ),\n        ranked_users AS (\n            SELECT\n                id,\n                full_name,\n                picture,\n                reputation,\n                total_notes,\n                total_upvotes,\n                total_downloads,\n                RANK() OVER (ORDER BY reputation DESC, total_notes DESC) as rank\n            FROM user_reputation\n        )\n        SELECT\n            id,\n            full_name,\n            picture,\n            reputation,\n            total_notes,\n            total_upvotes,\n            total_downloads,\n            rank\n        FROM ranked_users\n        WHERE id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "full_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "picture",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "reputation",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 4,
+        "name": "total_notes",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 5,
+        "name": "total_upvotes",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 6,
+        "name": "total_downloads",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 7,
+        "name": "rank",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "05b33b5f841562efe5eeb2e6b57bc56dc147bc95acb384884811705b51aded1c"
+}
