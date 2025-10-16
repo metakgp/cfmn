@@ -155,6 +155,7 @@ pub async fn search_notes_by_query(
         LEFT JOIN
             votes user_vote ON n.id = user_vote.note_id AND user_vote.user_id = $2
         WHERE course_name ILIKE $1 OR course_code ILIKE $1
+        ORDER BY COALESCE(upvote_counts.count, 0) DESC, n.created_at DESC
         "#,
         search_term,
         current_user_id.as_ref()

@@ -102,8 +102,7 @@ pub async fn google_auth_callback(
 
     let token_data =
         decode::<GoogleClaims>(&payload.token, decoding_key, &validation).map_err(|e| {
-            tracing::error!("Token validation error: {}", e);
-            crate::api::errors::AuthError::InvalidToken("Token validation failed".to_string())
+            crate::api::errors::AuthError::InvalidToken(format!("Token validation failed: {}", e))
         })?;
 
     let claims = token_data.claims;

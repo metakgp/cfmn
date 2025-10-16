@@ -61,13 +61,13 @@ const AppContent: React.FC = () => {
             <AuthProvider onSignIn={loadNotes}>
                 <Header onNoteUploaded={handleNoteUploaded} />
 
-                <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="mb-8">
+                <main className="flex-1 w-full px-6 sm:px-8 lg:px-12 xl:px-16 py-8">
+                    <div className="mb-8 max-w-3xl mx-auto">
                         <SearchBar searchQuery={searchQuery} onSearchChange={handleSearchChange} />
                     </div>
 
                     {error && (
-                        <div className="mb-6 p-4 bg-red-900 border border-red-700 rounded-lg text-red-300">
+                        <div className="mb-6 p-4 bg-red-900 border border-red-700 rounded-lg text-red-300 max-w-3xl mx-auto">
                             {error}
                         </div>
                     )}

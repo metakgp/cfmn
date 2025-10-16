@@ -13,6 +13,8 @@ interface UploadModalProps {
 interface FormData {
   courseName: string;
   courseCode: string;
+  year: string;
+  semester: 'Autumn' | 'Spring';
   description: string;
   professorNames: string;
   tags: string;
@@ -23,6 +25,8 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onSuccess })
   const [formData, setFormData] = useState<FormData>({
     courseName: '',
     courseCode: '',
+    year: new Date().getFullYear().toString(),
+    semester: 'Autumn',
     description: '',
     professorNames: '',
     tags: '',
@@ -92,6 +96,8 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onSuccess })
       const uploadFormData = new FormData();
       uploadFormData.append('course_name', formData.courseName.trim());
       uploadFormData.append('course_code', formData.courseCode.trim());
+      uploadFormData.append('year', formData.year);
+      uploadFormData.append('semester', formData.semester);
       if (formData.description.trim()) uploadFormData.append('description', formData.description.trim());
       if (formData.professorNames.trim()) uploadFormData.append('professor_names', formData.professorNames.trim());
       if (formData.tags.trim()) uploadFormData.append('tags', formData.tags.trim());
@@ -100,7 +106,16 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onSuccess })
       const newNote = await notesApi.uploadNote(uploadFormData);
       onSuccess(newNote);
       onClose();
-      setFormData({ courseName: '', courseCode: '', description: '', professorNames: '', tags: '', file: null });
+      setFormData({
+        courseName: '',
+        courseCode: '',
+        year: new Date().getFullYear().toString(),
+        semester: 'Autumn',
+        description: '',
+        professorNames: '',
+        tags: '',
+        file: null
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed. Please try again.');
     } finally {
@@ -109,7 +124,16 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onSuccess })
   };
 
   const resetAndClose = () => {
-    setFormData({ courseName: '', courseCode: '', description: '', professorNames: '', tags: '', file: null });
+    setFormData({
+      courseName: '',
+      courseCode: '',
+      year: new Date().getFullYear().toString(),
+      semester: 'Autumn',
+      description: '',
+      professorNames: '',
+      tags: '',
+      file: null
+    });
     setError(null);
     onClose();
   };
@@ -156,6 +180,50 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onSuccess })
                   placeholder="e.g., CS101"
                   required
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-text-muted mb-2">Year *</label>
+                <select
+                    value={formData.year}
+                    onChange={(e) => handleInputChange('year', e.target.value)}
+                    className="w-full px-3 py-2 border border-border bg-surface rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    required
+                >
+                  {Array.from({ length: 50 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                      <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-text-muted mb-2">Semester *</label>
+                <div className="flex space-x-4 mt-2">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                        type="radio"
+                        name="semester"
+                        value="Autumn"
+                        checked={formData.semester === 'Autumn'}
+                        onChange={(e) => handleInputChange('semester', e.target.value)}
+                        className="w-4 h-4 text-primary focus:ring-2 focus:ring-primary"
+                    />
+                    <span className="text-text-base">Autumn</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                        type="radio"
+                        name="semester"
+                        value="Spring"
+                        checked={formData.semester === 'Spring'}
+                        onChange={(e) => handleInputChange('semester', e.target.value)}
+                        className="w-4 h-4 text-primary focus:ring-2 focus:ring-primary"
+                    />
+                    <span className="text-text-base">Spring</span>
+                  </label>
+                </div>
+              </div>
             </div>
 
             <div>

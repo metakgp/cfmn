@@ -1,11 +1,11 @@
 // components/CourseCard.tsx
-import React, { useState } from 'react';
-import { Download, ThumbsUp, ThumbsDown, Edit, FileText } from 'lucide-react';
-import { useSignInFlow } from '../hooks/useSignInFlow';
+import React, {useState} from 'react';
+import {Download, Edit, FileText, ThumbsUp} from 'lucide-react';
+import {useSignInFlow} from '../hooks/useSignInFlow';
 import SignInModal from './SignInModal';
-import type { CourseCardProps, VoteType } from '../types';
-import { notesApi } from '../api/notesApi';
-import { useAuth } from '../contexts/AuthContext';
+import type {CourseCardProps, VoteType} from '../types';
+import {notesApi} from '../api/notesApi';
+import {useAuth} from '../contexts/AuthContext';
 
 const CourseCard: React.FC<CourseCardProps> = ({ note }) => {
     const { isAuthenticated, user } = useAuth();
@@ -27,7 +27,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ note }) => {
         convertVoteToString(note.user_vote)
     );
     const [upvoteCount, setUpvoteCount] = useState(note.upvotes || 0);
-    const [downvoteCount, setDownvoteCount] = useState(note.downvotes || 0);
+    // const [downvoteCount, setDownvoteCount] = useState(note.downvotes || 0);
     const [downloadCount, setDownloadCount] = useState(note.downloads || 0);
     const [isVoting, setIsVoting] = useState(false);
     const [imageError, setImageError] = useState(false);
@@ -61,37 +61,36 @@ const CourseCard: React.FC<CourseCardProps> = ({ note }) => {
         return { visibleTags, remainingCount };
     };
 
-    const handleVote = async (voteType: 'upvote' | 'downvote') => {
+    const handleVote = async (voteType: 'upvote') => {
         if (isVoting) return;
 
         requireAuth(voteType, async () => {
             setIsVoting(true);
             const previousVote = userVote;
-            const previousUpvoteCount = upvoteCount;
-            const previousDownvoteCount = downvoteCount;
+            // const previousDownvoteCount = downvoteCount;
 
             try {
-                let actualVoteType: VoteType = userVote === voteType ? 'remove' : voteType;
+                const actualVoteType: VoteType = userVote === voteType ? 'remove' : voteType;
 
                 if (actualVoteType === 'remove') {
                     setUserVote(null);
                     if (previousVote === 'upvote') setUpvoteCount(prev => Math.max(0, prev - 1));
-                    else if (previousVote === 'downvote') setDownvoteCount(prev => Math.max(0, prev - 1));
+                    // else if (previousVote === 'downvote') setDownvoteCount(prev => Math.max(0, prev - 1));
                 } else if (actualVoteType === 'upvote') {
                     setUserVote('upvote');
                     setUpvoteCount(prev => prev + 1);
-                    if (previousVote === 'downvote') setDownvoteCount(prev => Math.max(0, prev - 1));
+                    // if (previousVote === 'downvote') setDownvoteCount(prev => Math.max(0, prev - 1));
                 } else if (actualVoteType === 'downvote') {
                     setUserVote('downvote');
-                    setDownvoteCount(prev => prev + 1);
+                    // setDownvoteCount(prev => prev + 1);
                     if (previousVote === 'upvote') setUpvoteCount(prev => Math.max(0, prev - 1));
                 }
 
                 await notesApi.voteOnNote(note.id, actualVoteType);
             } catch (error) {
                 setUserVote(previousVote);
-                setUpvoteCount(previousUpvoteCount);
-                setDownvoteCount(previousDownvoteCount);
+                setUpvoteCount(upvoteCount);
+                // setDownvoteCount(previousDownvoteCount);
                 console.error('Vote failed:', error);
                 alert('Failed to vote. Please try again.');
             } finally {
@@ -182,7 +181,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ note }) => {
                             <span className="text-gray-600 text-xs italic">No tags provided</span>
                         )}
                     </div>
-                    <div className="mb-4 h-5">
+                    <div className="mb-3 h-5">
                         {note.professor_names && note.professor_names.length > 0 ? (
                             <p className="text-sm text-text-muted flex items-center">
                                 <span className="text-gray-600 mr-1">Prof:</span>
@@ -195,6 +194,11 @@ const CourseCard: React.FC<CourseCardProps> = ({ note }) => {
                                 No professors were specified
                             </p>
                         )}
+                    </div>
+                    <div className="mb-4">
+                        <p className="text-xs text-gray-500">
+                            By: <span className="text-text-muted">{note.uploader_user.full_name}</span>
+                        </p>
                     </div>
                     <div className="flex items-center justify-between pt-3 border-t border-border">
                         <div className="flex items-center space-x-4">

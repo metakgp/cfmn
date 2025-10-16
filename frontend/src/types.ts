@@ -1,3 +1,12 @@
+export type VoteType = 'upvote' | 'remove'; // 'downvote' removed for optimism
+export interface DBVote {
+    id: string;
+    user_id: string;
+    note_id: string;
+    is_upvote: boolean;
+    created_at: string | null;
+}
+
 export interface ResponseUser {
     id: string;
     google_id: string;
@@ -6,15 +15,6 @@ export interface ResponseUser {
     reputation: number;
     created_at: string;
     picture: string;
-}
-
-export type VoteType = 'upvote' | 'remove'; // 'downvote' removed for optimism
-export interface DBVote {
-    id: string;
-    user_id: string;
-    note_id: string;
-    is_upvote: boolean;
-    created_at: string | null;
 }
 
 export interface ResponseNote {
