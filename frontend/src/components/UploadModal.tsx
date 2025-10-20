@@ -165,7 +165,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onSuccess })
                   value={formData.courseName}
                   onChange={(e) => handleInputChange('courseName', e.target.value)}
                   className="w-full px-3 py-2 border border-border bg-surface rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                  placeholder="e.g., Data Structures and Algorithms"
+                  placeholder="e.g., Programming and Data Structures"
                   required
               />
             </div>
@@ -177,7 +177,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onSuccess })
                   value={formData.courseCode}
                   onChange={(e) => handleInputChange('courseCode', e.target.value)}
                   className="w-full px-3 py-2 border border-border bg-surface rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                  placeholder="e.g., CS101"
+                  placeholder="e.g., CS10003"
                   required
               />
             </div>
@@ -244,7 +244,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onSuccess })
                   value={formData.professorNames}
                   onChange={(e) => handleInputChange('professorNames', e.target.value)}
                   className="w-full px-3 py-2 border border-border bg-surface rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                  placeholder="e.g., Dr. Smith, Prof. Johnson (comma-separated)"
+                  placeholder="e.g., Pralay Mitra, Abhijit Das (comma-separated)"
               />
             </div>
 
