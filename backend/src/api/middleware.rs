@@ -51,6 +51,11 @@ pub(crate) async fn verify_token_middleware(
     mut request: Request<Body>,
     next: Next,
 ) -> Result<Response<Body>, AppError> {
+    // Allow OPTIONS requests (CORS preflight) to pass through without authentication
+    if request.method() == axum::http::Method::OPTIONS {
+        return Ok(next.run(request).await);
+    }
+
     // Look for Authorization header instead of cookie
     let auth_header = request
         .headers()
@@ -91,6 +96,11 @@ pub(crate) async fn optional_auth_middleware(
     mut request: Request<Body>,
     next: Next,
 ) -> Result<Response<Body>, AppError> {
+    // Allow OPTIONS requests (CORS preflight) to pass through without processing
+    if request.method() == axum::http::Method::OPTIONS {
+        return Ok(next.run(request).await);
+    }
+
     // Look for Authorization header
     let auth_header = request
         .headers()
