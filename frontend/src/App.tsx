@@ -6,6 +6,7 @@ import Header from './components/Header';
 import SearchBar from './components/SearchBar';
 import CourseGrid from './components/CourseGrid';
 import Leaderboard from './components/Leaderboard';
+import ProfilePage from './pages/ProfilePage';
 import { notesApi } from './api/notesApi';
 import type { ResponseNote } from './types';
 
@@ -94,6 +95,8 @@ const AppContent: React.FC = () => {
                     <Routes>
                         <Route path="/" element={<HomePage />} />
                         <Route path="/leaderboard" element={<Leaderboard />} />
+                        <Route path="/profile" element={<ProfilePage />} />
+                        <Route path="/profile/:userId" element={<ProfilePage />} />
                     </Routes>
                 </div>
             </AuthProvider>

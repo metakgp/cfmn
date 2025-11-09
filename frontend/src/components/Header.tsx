@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSignInFlow } from '../hooks/useSignInFlow';
 import SignInModal from './SignInModal';
 import UploadModal from './UploadModal';
-import { LogOut, Upload, Plus, ChevronDown, User, Trophy } from 'lucide-react';
+import { LogOut, Upload, Plus, ChevronDown, User, Trophy, UserCircle } from 'lucide-react';
 import type { ResponseNote } from '../types';
 
 interface HeaderProps {
@@ -186,6 +186,14 @@ const Header: React.FC<HeaderProps> = ({ onNoteUploaded }) => {
 
                                             {/* Menu Items */}
                                             <div className="py-2">
+                                                <Link
+                                                    to="/profile"
+                                                    onClick={() => setShowUserMenu(false)}
+                                                    className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                                >
+                                                    <UserCircle size={16} />
+                                                    <span>My Profile</span>
+                                                </Link>
                                                 <button
                                                     onClick={handleSignOut}
                                                     className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"

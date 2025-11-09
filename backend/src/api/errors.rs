@@ -1,7 +1,6 @@
+use axum::body::Body;
 use axum::http::StatusCode;
-use axum::Json;
 use axum::response::{IntoResponse, Response};
-use serde_json::json;
 
 pub enum AppError {
     Note(NoteError),
@@ -32,16 +31,25 @@ impl From<UserError> for AppError {
 
 impl IntoResponse for UserError {
     fn into_response(self) -> Response {
-        match self {
+        let (status, error_message) = match self {
             UserError::Conflict(msg, err) => {
                 tracing::error!("User conflict error: {}", err);
-                (StatusCode::CONFLICT, msg).into_response()
+                (StatusCode::CONFLICT, msg)
             }
             UserError::Unknown(msg, err) => {
                 tracing::error!("Unknown user error: {}", err);
-                (StatusCode::INTERNAL_SERVER_ERROR, msg).into_response()
+                (StatusCode::INTERNAL_SERVER_ERROR, msg)
             }
-        }
+        };
+
+        Response::builder()
+            .status(status)
+            .header("Content-Type", "application/json")
+            .header("Access-Control-Allow-Origin", "*")
+            .header("Access-Control-Allow-Methods", "*")
+            .header("Access-Control-Allow-Headers", "content-type, authorization, accept, origin, x-requested-with")
+            .body(Body::from(format!(r#"{{"error": "{}"}}"#, error_message)))
+            .unwrap()
     }
 }
 
@@ -61,28 +69,37 @@ impl From<AuthError> for AppError {
 
 impl IntoResponse for AuthError {
     fn into_response(self) -> Response {
-        match self {
+        let (status, error_message) = match self {
             AuthError::RequestError(msg, err) => {
                 tracing::error!("Authentication request error: {}: {}", msg, err);
-                (StatusCode::INTERNAL_SERVER_ERROR, msg).into_response()
+                (StatusCode::INTERNAL_SERVER_ERROR, msg)
             }
             AuthError::BadResponse(msg) => {
                 tracing::error!("Authentication bad response: {}", msg);
-                (StatusCode::BAD_REQUEST, msg).into_response()
+                (StatusCode::BAD_REQUEST, msg)
             }
             AuthError::ConfigError(msg) => {
                 tracing::error!("Authentication config error: {}", msg);
-                (StatusCode::INTERNAL_SERVER_ERROR, msg).into_response()
+                (StatusCode::INTERNAL_SERVER_ERROR, msg)
             }
             AuthError::InvalidToken(msg) => {
                 tracing::error!("Invalid authentication token: {}", msg);
-                (StatusCode::UNAUTHORIZED, msg).into_response()
+                (StatusCode::UNAUTHORIZED, msg)
             }
             AuthError::DatabaseError(msg, err) => {
                 tracing::error!("Authentication database error: {}: {:?}", msg, err);
-                (StatusCode::INTERNAL_SERVER_ERROR, msg).into_response()
+                (StatusCode::INTERNAL_SERVER_ERROR, msg)
             }
-        }
+        };
+
+        Response::builder()
+            .status(status)
+            .header("Content-Type", "application/json")
+            .header("Access-Control-Allow-Origin", "*")
+            .header("Access-Control-Allow-Methods", "*")
+            .header("Access-Control-Allow-Headers", "content-type, authorization, accept, origin, x-requested-with")
+            .body(Body::from(format!(r#"{{"error": "{}"}}"#, error_message)))
+            .unwrap()
     }
 }
 
@@ -115,6 +132,13 @@ impl IntoResponse for NoteError {
             NoteError::BadVote(msg) => (StatusCode::BAD_REQUEST, msg),
         };
 
-        (status, Json(json!({ "error": error_message }))).into_response()
+        Response::builder()
+            .status(status)
+            .header("Content-Type", "application/json")
+            .header("Access-Control-Allow-Origin", "*")
+            .header("Access-Control-Allow-Methods", "*")
+            .header("Access-Control-Allow-Headers", "content-type, authorization, accept, origin, x-requested-with")
+            .body(Body::from(format!(r#"{{"error": "{}"}}"#, error_message)))
+            .unwrap()
     }
 }

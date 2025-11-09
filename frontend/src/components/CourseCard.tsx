@@ -7,7 +7,7 @@ import type { CourseCardProps, VoteType } from '../types';
 import { notesApi } from '../api/notesApi';
 import { useAuth } from '../contexts/AuthContext';
 
-const CourseCard: React.FC<CourseCardProps> = ({ note }) => {
+const CourseCard: React.FC<CourseCardProps> = ({ note, showEditButton = false, onEdit }) => {
     const { isAuthenticated, user } = useAuth();
     const {
         showSignInModal,
@@ -32,6 +32,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ note }) => {
     const [imageError, setImageError] = useState(false);
 
     const isOwner = user && note.uploader_user.id === user.id;
+    const shouldShowEditButton = showEditButton && isOwner;
 
     const requireAuth = (actionName: string, action: () => void) => {
         if (!isAuthenticated) {
@@ -101,9 +102,13 @@ const CourseCard: React.FC<CourseCardProps> = ({ note }) => {
         }
     };
 
-    const handleEdit = () => requireAuth('edit', () => {
-        console.log(`Editing notes for ${note.course_name}`);
-    });
+    const handleEdit = () => {
+        if (onEdit) {
+            onEdit();
+        } else {
+            console.log(`Editing notes for ${note.course_name}`);
+        }
+    };
 
     const { visibleTags, remainingCount } = getVisibleTags(note.tags, 3);
     const shouldShowPlaceholder = !note.preview_image_url || imageError;
@@ -129,7 +134,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ note }) => {
                             onError={() => setImageError(true)}
                         />
                     )}
-                    {isOwner && (
+                    {shouldShowEditButton && (
                         <button
                             onClick={handleEdit}
                             className="absolute top-3 right-3 bg-surface bg-opacity-80 backdrop-blur-sm text-text-muted hover:text-primary p-2 rounded-full shadow-lg transition-colors duration-200"

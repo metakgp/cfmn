@@ -2,8 +2,8 @@ use crate::api::errors::{AppError, NoteError};
 use crate::api::models::{CreateNote, ResponseNote, ResponseUser};
 use crate::api::router::RouterState;
 use crate::db::handlers::notes::{
-    create_note, get_note_by_id, get_notes, increment_note_downloads, search_notes_by_query,
-    update_note_preview_status,
+    create_note, delete_note, get_note_by_id, get_notes, get_notes_by_user_id,
+    increment_note_downloads, search_notes_by_query, update_note, update_note_preview_status,
 };
 use crate::db::models::User;
 use axum::body::Bytes;
@@ -406,4 +406,274 @@ pub async fn download_note(
         })?;
 
     Ok((StatusCode::OK, Json("OK").into_response()))
+}
+
+/// Get all notes uploaded by a specific user
+pub async fn get_user_notes(
+    State(state): State<RouterState>,
+    Extension(user): Extension<Option<User>>,
+    Path(user_id): Path<Uuid>,
+) -> Result<(StatusCode, Response), AppError> {
+    match get_notes_by_user_id(&state.db_wrapper, user_id, user.as_ref().map(|u| u.id)).await {
+        Ok(notes) => {
+            let response_notes: Vec<ResponseNote> = notes
+                .into_iter()
+                .map(|note| {
+                    let file_url = state
+                        .env_vars
+                        .paths
+                        .get_note_url(&format!("{}.pdf", note.note_id))
+                        .unwrap();
+                    let preview_image_url = state
+                        .env_vars
+                        .paths
+                        .get_preview_url(&format!("{}.jpg", note.note_id))
+                        .unwrap();
+                    ResponseNote::from_note_with_user(note, file_url, preview_image_url)
+                })
+                .collect();
+            Ok((StatusCode::OK, Json(response_notes).into_response()))
+        }
+        Err(err) => Err(NoteError::DatabaseError(
+            "Failed to fetch user notes".to_string(),
+            err.into(),
+        )
+        .into()),
+    }
+}
+
+/// Update an existing note (owner only)
+pub async fn update_note_handler(
+    State(state): State<RouterState>,
+    Extension(user): Extension<User>,
+    Path(note_id): Path<Uuid>,
+    mut multipart: Multipart,
+) -> Result<(StatusCode, Response), AppError> {
+    // First, verify the user owns this note
+    let existing_note = get_note_by_id(&state.db_wrapper, note_id, Some(user.id))
+        .await
+        .map_err(|err| {
+            NoteError::DatabaseError("Failed to fetch note".to_string(), err.into())
+        })?;
+
+    if existing_note.note_uploader_user_id != user.id {
+        return Err(NoteError::InvalidData("You can only edit your own notes".to_string()).into());
+    }
+
+    let mut course_name = String::new();
+    let mut course_code = String::new();
+    let mut description: Option<String> = None;
+    let mut professor_names: Option<Vec<String>> = None;
+    let mut tags: Vec<String> = Vec::new();
+    let mut file_data: Option<Bytes> = None;
+    let mut year: usize = 2025;
+    let mut semester: String = "Autumn".to_string();
+
+    let file_size_limit = state.env_vars.file_size_limit << 20;
+
+    // Parse multipart form data
+    while let Ok(Some(field)) = multipart.next_field().await {
+        let name = match field.name() {
+            Some(name) => name.to_string(),
+            None => continue,
+        };
+
+        if name == "file" {
+            if let Some(content_type) = field.content_type() {
+                if content_type != "application/pdf" {
+                    return Err(NoteError::InvalidData(
+                        "Only PDF files are supported".to_string(),
+                    )
+                    .into());
+                }
+            }
+
+            let data = field
+                .bytes()
+                .await
+                .map_err(|_| NoteError::UploadFailed("Failed to read file bytes".to_string()))?;
+
+            if data.len() > file_size_limit {
+                return Err(NoteError::InvalidData(format!(
+                    "File size too big. Only files up to {} MiB are allowed.",
+                    file_size_limit >> 20
+                ))
+                .into());
+            }
+
+            file_data = Some(data);
+            continue;
+        }
+
+        // Handle text fields
+        let data = field
+            .text()
+            .await
+            .map_err(|_| NoteError::UploadFailed(format!("Invalid format for field: {}", name)))?;
+
+        match name.as_str() {
+            "course_name" => course_name = data,
+            "course_code" => course_code = data,
+            "description" => {
+                if !data.trim().is_empty() {
+                    description = Some(data);
+                }
+            }
+            "professor_names" => {
+                let names: Vec<String> = data
+                    .split(',')
+                    .map(|s| s.trim().to_string())
+                    .filter(|s| !s.is_empty())
+                    .collect();
+                if !names.is_empty() {
+                    professor_names = Some(names);
+                }
+            }
+            "tags" => {
+                tags = data
+                    .split(',')
+                    .map(|s| s.trim().to_string())
+                    .filter(|s| !s.is_empty())
+                    .collect();
+            }
+            "year" => {
+                year = data
+                    .trim()
+                    .parse::<usize>()
+                    .map_err(|_| NoteError::InvalidData("Invalid year".to_string()))?;
+            }
+            "semester" => {
+                let s = data.trim();
+                if !s.is_empty() {
+                    semester = s.to_string();
+                }
+            }
+            _ => (),
+        }
+    }
+
+    // Validate required fields
+    if course_name.trim().is_empty() {
+        return Err(NoteError::InvalidData("Course name is required".to_string()).into());
+    }
+    if course_code.trim().is_empty() {
+        return Err(NoteError::InvalidData("Course code is required".to_string()).into());
+    }
+    if semester.trim().is_empty() || (semester.trim() != "Autumn" && semester.trim() != "Spring") {
+        return Err(NoteError::InvalidData(
+            "Semester is required and must be one of: Autumn, Spring".to_string(),
+        )
+        .into());
+    }
+
+    // Update note in database
+    let updated_note = update_note(
+        &state.db_wrapper,
+        note_id,
+        course_name,
+        course_code,
+        description,
+        professor_names,
+        tags,
+        year,
+        semester,
+    )
+    .await
+    .map_err(|err| {
+        NoteError::DatabaseError("Failed to update note".to_string(), err.into())
+    })?;
+
+    // If a new file was provided, replace the old one
+    if let Some(file_bytes) = file_data {
+        let file_path = state
+            .env_vars
+            .paths
+            .get_note_path(&format!("{}.pdf", note_id));
+        let preview_path = state
+            .env_vars
+            .paths
+            .get_preview_path(&format!("{}.jpg", note_id));
+
+        // Write new PDF file
+        tokio::fs::write(&file_path, &file_bytes)
+            .await
+            .map_err(|_| NoteError::UploadFailed("Failed to save file".to_string()))?;
+
+        // Regenerate preview image
+        let result = generate_preview_image(
+            file_path.to_str().unwrap(),
+            preview_path.to_str().unwrap(),
+        )
+        .await;
+
+        if result.is_ok() {
+            let mut tx = state.db_wrapper.pool().begin().await.map_err(|err| {
+                NoteError::DatabaseError("Failed to start transaction".to_string(), err.into())
+            })?;
+            let _ = update_note_preview_status(&mut tx, note_id, true).await;
+            let _ = tx.commit().await;
+        }
+    }
+
+    // Fetch the updated note with user info
+    let note_with_user = get_note_by_id(&state.db_wrapper, note_id, Some(user.id))
+        .await
+        .map_err(|err| {
+            NoteError::DatabaseError("Failed to fetch updated note".to_string(), err.into())
+        })?;
+
+    let file_url = state
+        .env_vars
+        .paths
+        .get_note_url(&format!("{}.pdf", note_id))
+        .unwrap();
+    let preview_image_url = state
+        .env_vars
+        .paths
+        .get_preview_url(&format!("{}.jpg", note_id))
+        .unwrap();
+
+    let response_note = ResponseNote::from_note_with_user(note_with_user, file_url, preview_image_url);
+
+    Ok((StatusCode::OK, Json(response_note).into_response()))
+}
+
+/// Delete a note (owner only)
+pub async fn delete_note_handler(
+    State(state): State<RouterState>,
+    Extension(user): Extension<User>,
+    Path(note_id): Path<Uuid>,
+) -> Result<(StatusCode, Response), AppError> {
+    // First, verify the user owns this note
+    let existing_note = get_note_by_id(&state.db_wrapper, note_id, Some(user.id))
+        .await
+        .map_err(|err| {
+            NoteError::DatabaseError("Failed to fetch note".to_string(), err.into())
+        })?;
+
+    if existing_note.note_uploader_user_id != user.id {
+        return Err(NoteError::InvalidData("You can only delete your own notes".to_string()).into());
+    }
+
+    // Delete the note from database
+    delete_note(&state.db_wrapper, note_id)
+        .await
+        .map_err(|err| {
+            NoteError::DatabaseError("Failed to delete note".to_string(), err.into())
+        })?;
+
+    // Delete the files
+    let file_path = state
+        .env_vars
+        .paths
+        .get_note_path(&format!("{}.pdf", note_id));
+    let preview_path = state
+        .env_vars
+        .paths
+        .get_preview_path(&format!("{}.jpg", note_id));
+
+    let _ = tokio::fs::remove_file(file_path).await;
+    let _ = tokio::fs::remove_file(preview_path).await;
+
+    Ok((StatusCode::OK, Json("Note deleted successfully").into_response()))
 }

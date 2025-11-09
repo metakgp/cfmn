@@ -99,13 +99,42 @@ class NotesAPI {
         return await response.json();
     }
 
+    // GET /api/users/:user_id/notes - Get all notes by a specific user
+    async getUserNotes(userId: string): Promise<ResponseNote[]> {
+        const url = `/api/users/${userId}/notes`;
+        return this.fetchWithErrorHandling(url);
+    }
+
     // PUT /api/notes/:note_id - Update a note
-    async updateNote(noteId: string, noteData: Partial<ResponseNote>): Promise<ResponseNote> {
+    async updateNote(noteId: string, formData: FormData): Promise<ResponseNote> {
         const url = `/api/notes/${noteId}`;
-        return this.fetchWithErrorHandling(url, {
+
+        // Use authenticatedFetch but don't set Content-Type for multipart
+        const token = localStorage.getItem('auth_token');
+        const headers: Record<string, string> = {};
+
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}${url}`, {
             method: 'PUT',
-            body: JSON.stringify(noteData),
+            headers, // Don't include Content-Type for multipart data
+            body: formData,
         });
+
+        // Handle token expiration
+        if (response.status === 401 && token) {
+            localStorage.removeItem('auth_token');
+            window.location.reload();
+        }
+
+        if (!response.ok) {
+            const errorData = await response.text();
+            throw new Error(`Update failed: ${response.status} - ${errorData}`);
+        }
+
+        return await response.json();
     }
 
     // DELETE /api/notes/:note_id - Delete a note

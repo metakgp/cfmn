@@ -6,7 +6,7 @@ use crate::db::DBPoolWrapper;
 use crate::env::EnvVars;
 use axum::middleware::from_fn_with_state;
 use axum::{
-    routing::{get, post},
+    routing::{delete, get, post, put},
     Router,
 };
 use tower_http::services::ServeDir;
@@ -26,6 +26,8 @@ pub fn create_router(db_wrapper: DBPoolWrapper, env_vars: EnvVars) -> Router {
     // Protected routes (require authentication)
     let protected_router = Router::new()
         .route("/notes/upload", post(handlers::notes::upload_note))
+        .route("/notes/{note_id}", put(handlers::notes::update_note_handler))
+        .route("/notes/{note_id}", delete(handlers::notes::delete_note_handler))
         .route("/notes/{note_id}/vote", post(handlers::votes::add_vote))
         .route("/auth/me", get(handlers::auth::get_current_user))
         .route_layer(from_fn_with_state(
@@ -38,6 +40,7 @@ pub fn create_router(db_wrapper: DBPoolWrapper, env_vars: EnvVars) -> Router {
         .route("/notes", get(handlers::notes::list_notes))
         .route("/notes/search", get(handlers::notes::search_notes))
         .route("/notes/{note_id}", get(handlers::notes::note_by_id))
+        .route("/users/{user_id}/notes", get(handlers::notes::get_user_notes))
         .route_layer(from_fn_with_state(
             state.clone(),
             middleware::optional_auth_middleware,

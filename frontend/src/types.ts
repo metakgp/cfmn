@@ -45,6 +45,8 @@ export interface SearchBarProps {
 
 export interface CourseCardProps {
     note: ResponseNote;
+    showEditButton?: boolean;
+    onEdit?: () => void;
 }
 
 export interface CourseGridProps {

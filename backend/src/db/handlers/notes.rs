@@ -239,3 +239,116 @@ pub async fn increment_note_downloads(
 
     Ok(())
 }
+
+/// Get all notes uploaded by a specific user
+pub async fn get_notes_by_user_id(
+    db_wrapper: &DBPoolWrapper,
+    user_id: Uuid,
+    current_user_id: Option<Uuid>,
+) -> Result<Vec<NoteWithUser>, sqlx::Error> {
+    let notes = sqlx::query_as!(
+        NoteWithUser,
+        r#"
+        SELECT
+            n.id as "note_id!",
+            n.course_name as "note_course_name!",
+            n.course_code as "note_course_code!",
+            n.description as "note_description",
+            n.professor_names as "note_professor_names",
+            n.tags as "note_tags!",
+            n.is_public as "note_is_public!",
+            n.has_preview_image as "note_has_preview_image!",
+            n.uploader_user_id as "note_uploader_user_id!",
+            n.created_at as "note_created_at!",
+            n.downloads as "note_downloads!",
+            n.note_year as "note_year!",
+            n.note_semester as "note_semester!",
+            COALESCE(upvote_counts.count, 0) as "note_upvote_count!",
+            COALESCE(downvote_counts.count, 0) as "note_downvote_count!",
+            user_vote.is_upvote as "note_user_upvote?",
+            u.id as "user_id!",
+            u.google_id as "user_google_id!",
+            u.email as "user_email!",
+            u.full_name as "user_full_name!",
+            u.created_at as "user_created_at!"
+        FROM
+            notes n
+        JOIN
+            users u ON n.uploader_user_id = u.id
+        LEFT JOIN
+            (SELECT note_id, COUNT(*) as count
+             FROM votes
+             WHERE is_upvote = true
+             GROUP BY note_id) upvote_counts ON n.id = upvote_counts.note_id
+        LEFT JOIN
+            (SELECT note_id, COUNT(*) as count
+             FROM votes
+             WHERE is_upvote = false
+             GROUP BY note_id) downvote_counts ON n.id = downvote_counts.note_id
+        LEFT JOIN
+            votes user_vote ON n.id = user_vote.note_id AND user_vote.user_id = $2
+        WHERE n.uploader_user_id = $1
+        ORDER BY
+            n.created_at DESC
+        "#,
+        user_id,
+        current_user_id.as_ref()
+    )
+        .fetch_all(db_wrapper.pool())
+        .await?;
+    Ok(notes)
+}
+
+/// Update an existing note
+pub async fn update_note(
+    db_wrapper: &DBPoolWrapper,
+    note_id: Uuid,
+    course_name: String,
+    course_code: String,
+    description: Option<String>,
+    professor_names: Option<Vec<String>>,
+    tags: Vec<String>,
+    year: usize,
+    semester: String,
+) -> Result<Note, sqlx::Error> {
+    let note = sqlx::query_as!(
+        Note,
+        r#"
+        UPDATE notes
+        SET course_name = $2,
+            course_code = $3,
+            description = $4,
+            professor_names = $5,
+            tags = $6,
+            note_year = $7,
+            note_semester = $8
+        WHERE id = $1
+        RETURNING id, course_name, course_code, description, professor_names, tags, is_public, has_preview_image, uploader_user_id, created_at, downloads, note_year, note_semester
+        "#,
+        note_id,
+        course_name,
+        course_code,
+        description,
+        professor_names.as_deref(),
+        &tags,
+        year as i64,
+        semester,
+    )
+        .fetch_one(db_wrapper.pool())
+        .await?;
+    Ok(note)
+}
+
+/// Delete a note by ID
+pub async fn delete_note(
+    db_wrapper: &DBPoolWrapper,
+    note_id: Uuid,
+) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        "DELETE FROM notes WHERE id = $1",
+        note_id
+    )
+        .execute(db_wrapper.pool())
+        .await?;
+    Ok(())
+}
