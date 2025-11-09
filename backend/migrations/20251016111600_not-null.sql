@@ -1,0 +1,3 @@
+ALTER TABLE notes
+    ALTER COLUMN note_year SET NOT NULL,
+ALTER COLUMN note_semester SET NOT NULL;

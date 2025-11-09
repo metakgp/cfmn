@@ -25,16 +25,11 @@
       },
       {
         "ordinal": 4,
-        "name": "reputation",
-        "type_info": "Int4"
-      },
-      {
-        "ordinal": 5,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 6,
+        "ordinal": 5,
         "name": "picture",
         "type_info": "Text"
       }
@@ -48,7 +43,6 @@
       ]
     },
     "nullable": [
-      false,
       false,
       false,
       false,

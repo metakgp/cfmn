@@ -167,7 +167,6 @@ async fn generate_preview_image(
 }
 
 // Integration into your upload_note function
-// TODO: Add semester and year fields
 pub async fn upload_note(
     State(state): State<RouterState>,
     Extension(user): Extension<User>,
@@ -179,6 +178,11 @@ pub async fn upload_note(
     let mut professor_names: Option<Vec<String>> = None;
     let mut tags: Vec<String> = Vec::new();
     let mut file_data: Option<Bytes> = None;
+
+    // New fields with sensible defaults (override from form if present)
+    let mut year: usize = 2025;
+    let mut semester: String = "Autumn".to_string();
+
     let file_size_limit = state.env_vars.file_size_limit << 20;
     tracing::info!("Upload request received, file size limit: {} MiB", file_size_limit >> 20);
 
@@ -190,7 +194,6 @@ pub async fn upload_note(
         };
 
         if name == "file" {
-            // Validate content type - only accept PDFs
             if let Some(content_type) = field.content_type() {
                 if content_type != "application/pdf" {
                     return Err(NoteError::InvalidData(
@@ -250,6 +253,21 @@ pub async fn upload_note(
                     .filter(|s| !s.is_empty())
                     .collect();
             }
+
+            "year" => {
+                year = data
+                    .trim()
+                    .parse::<usize>()
+                    .map_err(|_| NoteError::InvalidData("Invalid year".to_string()))?;
+            }
+
+            "semester" => {
+                let s = data.trim();
+                if !s.is_empty() {
+                    semester = s.to_string();
+                }
+            }
+
             _ => (),
         }
     }
@@ -265,9 +283,15 @@ pub async fn upload_note(
             "Course code is required".to_string(),
         ))?;
     }
+    if semester.trim().is_empty() || (semester.trim() != "Autumn" && semester.trim() != "Spring") {
+        return Err(NoteError::InvalidData(
+            "Semester is required and must be one of: Autumn, Spring".to_string(),
+        ))?;
+    }
 
     let file_bytes = file_data.ok_or(NoteError::InvalidData("File not provided".to_string()))?;
 
+    // Include the new fields here
     let new_note = CreateNote {
         course_name,
         course_code,
@@ -277,6 +301,8 @@ pub async fn upload_note(
         has_preview_image: false,
         uploader_user_id: user.id,
         timestamp: Utc::now(),
+        note_year: year,
+        note_semester: semester,
     };
 
     let (mut tx, note) = create_note(&state.db_wrapper, new_note)
@@ -307,6 +333,8 @@ pub async fn upload_note(
         has_preview_image: false,
         preview_image_url: preview_image_url.clone(),
         file_url,
+        year: note.note_year,
+        semester: note.note_semester,
         upvotes: 0,
         downvotes: 0,
         downloads: 0,
@@ -316,7 +344,6 @@ pub async fn upload_note(
             google_id: user.google_id.clone(),
             email: user.email.clone(),
             full_name: user.full_name.clone(),
-            reputation: user.reputation,
             created_at: user.created_at,
         },
         created_at: note.created_at,

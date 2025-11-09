@@ -8,7 +8,6 @@ use tower_http::cors::{Any, CorsLayer};
 use tower_http::limit::RequestBodyLimitLayer;
 use std::net::SocketAddr;
 use axum::extract::DefaultBodyLimit;
-use axum::http::{HeaderName, Method};
 use clap::Parser;
 use dotenvy::dotenv;
 use tracing_subscriber::prelude::*;
@@ -43,23 +42,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let db_wrapper = db::DBPoolWrapper::new(env_vars.clone()).await;
     tracing::info!("Database connection established.");
 
+    // Liberal CORS setup for development - allow all origins, methods, and headers
     let cors = CorsLayer::new()
         .allow_origin(Any)
-        .allow_methods([
-            Method::GET,
-            Method::POST,
-            Method::PUT,
-            Method::DELETE,
-            Method::HEAD,
-            Method::OPTIONS,
-        ])
-        .allow_headers([
-            HeaderName::from_static("content-type"),
-            HeaderName::from_static("authorization"),
-            HeaderName::from_static("accept"),
-            HeaderName::from_static("origin"),
-            HeaderName::from_static("x-requested-with"),
-        ]);
+        .allow_methods(Any)
+        .allow_headers(Any)
+        .expose_headers(Any);
 
     let file_size_limit = env_vars.file_size_limit;
     let port = env_vars.port;

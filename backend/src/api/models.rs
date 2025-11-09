@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use crate::db::models::NoteWithUser;
 
+
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CreateNote {
     pub course_name: String,
@@ -13,6 +15,8 @@ pub struct CreateNote {
     pub has_preview_image: bool,
     pub uploader_user_id: Uuid,
     pub timestamp: DateTime<Utc>,
+    pub note_year: usize,
+    pub note_semester: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -21,7 +25,6 @@ pub struct ResponseUser {
     pub google_id: String,
     pub email: String,
     pub full_name: String,
-    pub reputation: i32,
     pub created_at: DateTime<Utc>,
 }
 
@@ -43,6 +46,8 @@ pub struct ResponseNote {
     pub downvotes: usize,
     pub user_vote: Option<bool>, // If currently authenticated user has voted on this note
     pub downloads: usize,
+    pub year: i64,
+    pub semester: String,
 }
 
 impl ResponseNote {
@@ -62,6 +67,8 @@ impl ResponseNote {
             has_preview_image: note.note_has_preview_image,
             preview_image_url,
             file_url,
+            year: note.note_year,
+            semester: note.note_semester,
             upvotes: note.note_upvote_count as usize,
             downvotes: note.note_downvote_count as usize,
             downloads: note.note_downloads as usize,
@@ -71,7 +78,6 @@ impl ResponseNote {
                 google_id: note.user_google_id,
                 email: note.user_email,
                 full_name: note.user_full_name,
-                reputation: note.user_reputation,
                 created_at: note.user_created_at,
             },
             created_at: note.note_created_at,

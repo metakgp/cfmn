@@ -17,7 +17,6 @@ pub struct User {
     pub google_id: String,
     pub email: String,
     pub full_name: String,
-    pub reputation: i32,
     pub created_at: DateTime<Utc>,
     pub picture: String,
 }
@@ -35,6 +34,8 @@ pub struct Note {
     pub uploader_user_id: Uuid,
     pub created_at: DateTime<Utc>,
     pub downloads: i64,
+    pub note_year: i64,
+    pub note_semester: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -53,11 +54,12 @@ pub struct NoteWithUser {
     pub note_downvote_count: i64,
     pub note_user_upvote: Option<bool>,
     pub note_downloads: i64,
+    pub note_year: i64,
+    pub note_semester: String,
     pub user_id: Uuid,
     pub user_google_id: String,
     pub user_email: String,
     pub user_full_name: String,
-    pub user_reputation: i32,
     pub user_created_at: DateTime<Utc>,
 }
 

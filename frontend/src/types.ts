@@ -33,6 +33,8 @@ export interface ResponseNote {
     downvotes: number;
     user_vote: boolean | null;
     downloads: number;
+    year: number;
+    semester: string;
 }
 
 // Keep existing types for component props

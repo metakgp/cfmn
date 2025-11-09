@@ -34,9 +34,9 @@ pub async fn create_note(
     let note = sqlx::query_as!(
         Note,
         r#"
-        INSERT INTO notes (course_name, course_code, description, professor_names, tags, has_preview_image, uploader_user_id)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING id, course_name, course_code, description, professor_names, tags, is_public, has_preview_image, uploader_user_id, created_at, downloads
+        INSERT INTO notes (course_name, course_code, description, professor_names, tags, has_preview_image, uploader_user_id, note_year, note_semester)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        RETURNING id, course_name, course_code, description, professor_names, tags, is_public, has_preview_image, uploader_user_id, created_at, downloads, note_year, note_semester
         "#,
         new_note.course_name,
         new_note.course_code,
@@ -44,7 +44,9 @@ pub async fn create_note(
         new_note.professor_names.as_deref(),
         &new_note.tags,
         new_note.has_preview_image,
-        new_note.uploader_user_id
+        new_note.uploader_user_id,
+        new_note.note_year as i64,
+        new_note.note_semester,
     )
         .fetch_one(&mut *tx)  // Execute on the transaction instead of the pool
         .await?;
@@ -72,6 +74,8 @@ pub async fn get_notes(
             n.uploader_user_id as "note_uploader_user_id!",
             n.created_at as "note_created_at!",
             n.downloads as "note_downloads!",
+            n.note_year as "note_year!",
+            n.note_semester as "note_semester!",
             COALESCE(upvote_counts.count, 0) as "note_upvote_count!",
             COALESCE(downvote_counts.count, 0) as "note_downvote_count!",
             user_vote.is_upvote as "note_user_upvote?",
@@ -79,7 +83,6 @@ pub async fn get_notes(
             u.google_id as "user_google_id!",
             u.email as "user_email!",
             u.full_name as "user_full_name!",
-            u.reputation as "user_reputation!",
             u.created_at as "user_created_at!"
         FROM
             notes n
@@ -130,6 +133,8 @@ pub async fn search_notes_by_query(
             n.uploader_user_id as "note_uploader_user_id!",
             n.created_at as "note_created_at!",
             n.downloads as "note_downloads!",
+            n.note_year as "note_year!",
+            n.note_semester as "note_semester!",
             COALESCE(upvote_counts.count, 0) as "note_upvote_count!",
             COALESCE(downvote_counts.count, 0) as "note_downvote_count!",
             user_vote.is_upvote as "note_user_upvote?",
@@ -137,7 +142,6 @@ pub async fn search_notes_by_query(
             u.google_id as "user_google_id!",
             u.email as "user_email!",
             u.full_name as "user_full_name!",
-            u.reputation as "user_reputation!",
             u.created_at as "user_created_at!"
         FROM
             notes n
@@ -186,6 +190,8 @@ pub async fn get_note_by_id(
         n.uploader_user_id as "note_uploader_user_id!",
         n.created_at as "note_created_at!",
         n.downloads as "note_downloads!",
+        n.note_year as "note_year!",
+        n.note_semester as "note_semester!",
         COALESCE(upvote_counts.count, 0) as "note_upvote_count!",
         COALESCE(downvote_counts.count, 0) as "note_downvote_count!",
         user_vote.is_upvote as "note_user_upvote?",
@@ -193,7 +199,6 @@ pub async fn get_note_by_id(
         u.google_id as "user_google_id!",
         u.email as "user_email!",
         u.full_name as "user_full_name!",
-        u.reputation as "user_reputation!",
         u.created_at as "user_created_at!"
     FROM
         notes n
