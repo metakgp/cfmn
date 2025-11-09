@@ -107,6 +107,13 @@ pub async fn google_auth_callback(
 
     let claims = token_data.claims;
 
+    // Validate email domain - only allow @kgpian.iitkgp.ac.in
+    if !claims.email.ends_with("@kgpian.iitkgp.ac.in") {
+        return Err(crate::api::errors::AuthError::BadResponse(
+            "Only @kgpian.iitkgp.ac.in email addresses are allowed to sign in".to_string()
+        ).into());
+    }
+
     let user_info = GoogleUserInfo {
         google_id: claims.sub,
         email: claims.email,

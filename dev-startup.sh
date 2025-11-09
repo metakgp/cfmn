@@ -194,7 +194,9 @@ create_directories() {
 
     # Default paths if not set in .env
     STATIC_STORAGE="${STATIC_FILE_STORAGE_LOCATION:-${HOME}/static}"
-    LOG_DIR="${LOG_LOCATION:-${HOME}/log}"
+    # Extract directory from LOG_LOCATION file path (e.g., /path/to/backend.log -> /path/to)
+    LOG_FILE="${LOG_LOCATION:-${HOME}/log/backend.log}"
+    LOG_DIR="$(dirname "${LOG_FILE}")"
 
     # Create directories
     mkdir -p "${STATIC_STORAGE}/cfmn/notes/uploaded"

@@ -150,6 +150,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
                     use_fedcm_for_prompt: false,
                     ux_mode: 'popup',
                     context: 'signin',
+                    // Restrict to @kgpian.iitkgp.ac.in domain only
+                    hd: 'kgpian.iitkgp.ac.in',
                     // One Tap specific configurations
                     itp_support: true,
                     state_cookie_domain: window.location.hostname,
@@ -294,10 +296,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
             } else {
                 const errorText = await result.text();
                 console.error('Authentication failed:', result.status, errorText);
-                throw new Error(`Authentication failed: ${result.status}`);
+
+                // Check if it's an email domain restriction error
+                let errorMessage = `Authentication failed: ${result.status}`;
+                try {
+                    const errorData = JSON.parse(errorText);
+                    if (errorData.error && errorData.error.includes('@kgpian.iitkgp.ac.in')) {
+                        errorMessage = 'Only @kgpian.iitkgp.ac.in email addresses are allowed. Please sign in with your institutional email.';
+                    } else if (errorData.error) {
+                        errorMessage = errorData.error;
+                    }
+                } catch {
+                    // If JSON parsing fails, use the status-based message
+                }
+
+                throw new Error(errorMessage);
             }
         } catch (error) {
-            console.error('Authentication error:', error instanceof Error ? error.message : String(error));
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            console.error('Authentication error:', errorMsg);
+            // Display user-friendly error message
+            alert(errorMsg);
         } finally {
             setIsLoading(false);
         }
